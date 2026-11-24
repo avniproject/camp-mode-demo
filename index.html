@@ -1,0 +1,606 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="robots" content="noindex, nofollow">
+<title>Avni Camp Mode</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: guide column on the left, a stage of three phones joined by the hub's Wi-Fi on the right. */
+:root{
+  --ground:#eef3f2; --panel:#ffffff; --ink:#15211f; --ink2:#47595a; --ink3:#7a8a8b; --line:#d9e3e1;
+  --teal:#009688; --teal-ink:#00695f; --teal-soft:#e0f2ef; --amber:#e8890c; --amber-soft:#fff3df;
+  --server:#3d5afe; --off:#b23b3b; --ok:#1a8f4c;
+  --f-display:"Space Grotesk","Inter",system-ui,sans-serif; --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-phone:Roboto,"Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ground:#0f1716; --panel:#162220; --ink:#e6efed; --ink2:#a9bab8; --ink3:#7f908e; --line:#28403c;
+  --teal-soft:#123a35; --amber-soft:#3a2a10; color-scheme:dark; } }
+:root[data-theme="dark"]{ --ground:#0f1716; --panel:#162220; --ink:#e6efed; --ink2:#a9bab8; --ink3:#7f908e; --line:#28403c;
+  --teal-soft:#123a35; --amber-soft:#3a2a10; color-scheme:dark; }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+#app{display:grid;grid-template-columns:minmax(320px,400px) 1fr;min-height:100%;}
+/* ---------- guide ---------- */
+#guide{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding-block:22px 18px;padding-left:max(22px,env(safe-area-inset-left,0px));padding-right:22px;gap:16px;position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:var(--teal);display:grid;place-items:center;color:#fff;font-weight:800;font-family:var(--f-display)}
+.brand b{font-family:var(--f-display);font-size:18px;letter-spacing:.01em}
+.brand span{display:block;font-size:12px;color:var(--ink3)}
+.lede{font-size:14.5px;line-height:1.55;color:var(--ink2);margin:0}
+.stepcard{border:1.5px solid var(--teal);border-radius:14px;padding:16px;background:linear-gradient(180deg,var(--teal-soft),var(--panel))}
+.stepcard .sn{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-ink);display:flex;justify-content:space-between}
+:root[data-theme="dark"] .stepcard .sn{color:#6fd3c7}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .stepcard .sn{color:#6fd3c7} }
+.stepcard h2{font-family:var(--f-display);font-size:21px;line-height:1.25;margin:8px 0 8px;text-wrap:balance}
+.stepcard p{margin:0 0 8px;font-size:14.5px;line-height:1.55;color:var(--ink2)}
+.stepcard p:last-child{margin-bottom:0}
+.who{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 8px;margin-right:4px;vertical-align:1px}
+.who.desk{background:#e3ecff;color:#2848c7} .who.nurse{background:#ffe9d6;color:#a2520a} .who.doc{background:#efe2fb;color:#6a2fa3}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:9px 14px;font-weight:600;font-size:14px}
+.btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,.dotnav button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.dotnav{display:flex;flex-wrap:wrap;gap:6px}
+.dotnav button{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel);color:var(--ink2);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;padding:0}
+.dotnav button.done{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-ink)}
+.dotnav button.cur{background:var(--teal);border-color:var(--teal);color:#fff}
+.facts{border-top:1px dashed var(--line);padding-top:12px;font-size:13px;line-height:1.5;color:var(--ink3);display:grid;gap:6px}
+.facts b{color:var(--ink2)}
+/* ---------- stage ---------- */
+#stage{position:relative;padding-block:18px 26px;padding-left:20px;padding-right:max(20px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;min-width:0}
+.strip{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 13px;font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.pill i{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--ink3)}
+.pill.off i{background:var(--off)} .pill.on i{background:var(--ok)} .pill.wifi i{background:var(--teal)}
+.pill.server.on{border-color:var(--server);color:var(--server)} .pill.server.on i{background:var(--server)}
+.pill b{color:var(--ink);font-weight:600}
+#phones-wrap{position:relative;overflow-x:auto;overflow-y:hidden;padding-bottom:6px}
+#phones{position:relative;display:flex;gap:28px;justify-content:center;min-width:max-content;margin:0 auto;padding:64px 6px 0}
+#links{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.role{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink)}
+.role small{font-weight:500;color:var(--ink3)}
+.role .tag{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--teal);color:#fff;letter-spacing:.03em}
+.role .tag.spoke{background:var(--panel);color:var(--teal-ink);border:1px solid var(--teal)}
+.role .tag.none{display:none}
+.scaler{position:relative}
+.bezel{width:408px;height:856px;border-radius:44px;background:#0d0f12;padding:12px;box-shadow:0 26px 60px rgba(16,32,48,.25),inset 0 0 0 2px #2b2f36;transform-origin:top left}
+.phone{width:384px;height:832px;border-radius:32px;overflow:hidden;background:#fff;position:relative;display:flex;flex-direction:column;font-family:var(--f-phone);color:#000;font-size:16px;line-height:1.25;user-select:none}
+.packet{position:absolute;width:30px;height:22px;border-radius:6px;background:var(--amber);box-shadow:0 4px 12px rgba(232,137,12,.45);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:800;font-family:var(--f-body);z-index:40;pointer-events:none;transform:translate(-50%,-50%)}
+.packet.srv{background:var(--server);box-shadow:0 4px 12px rgba(61,90,254,.4)}
+.caption{text-align:center;font-size:13.5px;color:var(--ink2);min-height:20px}
+.credit{text-align:center;font-size:12px;color:var(--ink3)}
+.credit a{color:inherit}
+/* ---------- phone UI (styled after the Desai interactive demo) ---------- */
+.sb{height:34px;background:#212121;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px 0 20px;font-size:14px;font-weight:500;flex:none;position:relative;z-index:3}
+.sb .ic{display:flex;gap:7px;align-items:center}
+.sb .ic svg{display:block}
+.sb .bat{border:1.5px solid #fff;border-radius:4px;font-size:10px;padding:0 4px;line-height:13px;font-weight:700}
+.hd{min-height:56px;background:#212121;color:#fff;display:flex;align-items:center;flex:none;box-shadow:0 1px 3px rgba(0,0,0,.25);z-index:2}
+.hd .ttl{flex:1;font-size:19px;padding:8px 0 8px 20px;line-height:1.22}
+.hd .hb{width:62px;height:56px;display:grid;place-items:center;flex:none}
+.hd .hb+.ttl{padding-left:0}
+.scr{flex:1;overflow:hidden;position:relative;background:#fff}
+.scr.gray{background:#f6f6f6}
+.tabs{height:66px;background:#fff;border-top:1px solid #e2e2e2;display:flex;flex:none}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;padding-top:7px;font-size:12.5px;color:#1c1c1c;border-bottom:2px solid transparent;gap:2px}
+.tab.on{color:#126cb4;border-bottom-color:#126cb4}
+.sec{padding:16px 14px 0}
+.sec h4{margin:0 0 12px;font-size:17px;font-weight:700;color:#2e2e2e}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dc{border-radius:11px;border:1px solid rgba(0,0,0,.13);padding:15px 15px 16px;min-height:92px;position:relative;transition:background .4s}
+.dc .n{font-size:31px;font-weight:900;line-height:38px;font-variant-numeric:tabular-nums}
+.dc .l{font-size:15px;line-height:19px;color:#111}
+.dc.bump{animation:bump .9s ease}
+@keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.06);box-shadow:0 0 0 4px rgba(232,137,12,.55)}100%{transform:scale(1)}}
+.cap{font-size:13px;font-weight:700;color:#8b8b8b;padding:16px 16px 6px;text-transform:uppercase}
+.row{display:flex;gap:16px;padding:9px 13px 9px 18px;position:relative;align-items:center}
+.row:after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:1px;background:#d9d9d9}
+.row.new{animation:rowin .8s ease}
+@keyframes rowin{from{background:#fff3df}to{background:#fff}}
+.av{width:44px;height:44px;border-radius:9px;background:#e4f4f1;display:grid;place-items:center;font-weight:700;font-size:19px;flex:none}
+.rn{font-size:17px;font-weight:700;line-height:24px}
+.rs{font-size:14px;line-height:17px;color:#444}
+.chipv{display:inline-block;font-size:12px;color:#fff;border-radius:3px;padding:2px 5px;margin:4px 4px 0 0}
+.empty{padding:22px 16px;color:#777;font-size:15px;text-align:center}
+.mu{background:#212121;color:#fff;display:flex;gap:15px;padding:8px 16px 10px 14px;align-items:center}
+.mu b{font-size:19px;font-weight:400;display:block;line-height:24px}
+.mu span{font-size:14.5px;opacity:.9}
+.mg{background:#fff;margin:22px 12px 0;box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.mi{display:flex;align-items:center;height:42px;padding:0 11px 0 10px;border-bottom:1px solid #d5d5d5;gap:16px}
+.mi:last-child{border-bottom:0}
+.mi span{flex:1;font-size:16.5px;color:#222}
+.mi.hl{background:#fff3df;box-shadow:inset 3px 0 0 var(--amber)}
+.cm{padding:14px 14px}
+.cm h5{font-size:19px;font-weight:400;margin:6px 0 8px;color:#111}
+.cm p{font-size:16px;line-height:21px;margin:0 0 10px;color:#222}
+.cm .tb{background:#009688;color:#fff;font-size:17px;padding:9px 10px;border-radius:3px;margin:0 0 18px}
+.cm .gb{background:#e0e0e0;color:#222;font-size:17px;padding:9px 10px;border-radius:3px;margin:0 0 16px;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.cm .meta{font-size:16px;color:#6b6b6b;text-align:center;line-height:26px}
+.cm .err{color:#d0011b;font-size:16px;margin-bottom:10px}
+.cm .plist{font-size:15px;line-height:21px;color:#222;margin:0 0 12px}
+.cm .plist div{padding:4px 0;border-bottom:1px solid #eee}
+.qr{display:block;margin:6px auto 8px;image-rendering:pixelated}
+.press{box-shadow:0 0 0 4px rgba(232,137,12,.7)!important}
+.cam{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,#3b4446,#101415 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;color:#fff}
+.cam .frame{width:220px;height:220px;border:3px solid rgba(255,255,255,.85);border-radius:16px;position:relative;display:grid;place-items:center}
+.cam .frame canvas{opacity:.85}
+.cam .scanline{position:absolute;left:8px;right:8px;height:2px;background:#4dd0c4;box-shadow:0 0 12px #4dd0c4;top:10px;animation:scan 1.4s ease-in-out infinite alternate}
+@keyframes scan{to{top:206px}}
+.cam p{font-size:16px;margin:0;text-align:center;padding:0 30px}
+.cam .cancel{color:#4dd0c4;font-size:16px;font-weight:500}
+.fm{padding:12px 14px 20px}
+.fsub{background:#f5f5f5;padding:10px 10px 9px;margin:0 -2px 14px}
+.fsub b{font-size:17px;display:block;line-height:24px}
+.fsub span{font-size:15px;color:#333}
+.fgt{font-size:21px;line-height:30px;margin:4px 0 12px}
+.fl{font-size:16px;color:#5d5d5d;line-height:21px;padding-top:2px}
+.fl i{color:#d0011b;font-style:normal}
+.fe{margin:0 0 16px}
+.fv{border-bottom:1px solid #cfcfcf;font-size:17px;padding:8px 2px 6px;min-height:36px;color:#000}
+.fv.typing{border-bottom:2px solid #009688}
+.fv .ph{color:#b5b5b5}
+.opts{display:flex;flex-wrap:wrap;gap:4px 18px;padding:6px 0 2px;border:1px dashed #cfcfcf;padding:4px 8px}
+.opt{display:flex;align-items:center;gap:6px;font-size:16px;min-height:32px}
+.opt .rd{width:18px;height:18px;border-radius:50%;border:2px solid #757575;display:grid;place-items:center}
+.opt.on .rd{border-color:#009688}
+.opt.on .rd:after{content:"";width:9px;height:9px;border-radius:50%;background:#009688}
+.fbt{display:flex;gap:8px;margin-top:22px}
+.fb{flex:1;height:42px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:500}
+.fb.nx{background:#009688;color:#fff} .fb.pv{background:#dfdfdf;color:#222}
+.ph2{background:#f5f5f5;display:flex;gap:18px;padding:12px 15px 14px 18px;align-items:center}
+.ph2 b{font-size:22px;line-height:30px;display:block}
+.ph2 span{font-size:16px;line-height:24px;display:block;color:#333}
+.vc{background:#f5f5f5;border-radius:14px;margin:8px 14px;padding:10px 11px 11px}
+.vc.new{animation:rowin 1.2s ease}
+.vc .vt{font-size:16.5px;line-height:22px;display:flex;justify-content:space-between;align-items:center}
+.vc .vt small{font-size:12px;color:#fff;background:#4caf50;border-radius:10px;padding:2px 8px}
+.vc .vd{font-size:14px;line-height:20px;color:#8d8d8d}
+.vc .by{font-size:13px;color:#6b6b6b;margin-top:2px}
+.obs{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:7px;background:#fff}
+.obs td{padding:2px 5px 2px 7px;border-bottom:1px solid #eee;vertical-align:top}
+.obs td:first-child{color:#777;width:48%;border-right:2px solid #e2e2e2}
+.tbtn{background:#009688;color:#fff;font-size:16px;padding:8px 10px;border-radius:3px;box-shadow:0 2px 3px rgba(0,0,0,.25);margin:10px 14px 4px;text-align:center}
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:20;display:flex;align-items:center;justify-content:center}
+.dlg{background:#fff;width:290px;padding:22px 21px 6px;border-radius:3px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.dlg h6{margin:0 0 9px;font-size:20px;font-weight:700}
+.dlg p{margin:0;font-size:16px;line-height:21px;color:#222}
+.dlg .da{display:flex;justify-content:flex-end;margin-top:6px}
+.dlg .da span{color:#009688;font-weight:500;font-size:15px;padding:14px 12px}
+.dlg .da span.press{background:#e0f2ef;box-shadow:none!important;border-radius:3px}
+.toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:#323232;color:#fff;padding:10px 18px;border-radius:22px;font-size:14px;z-index:30;white-space:nowrap}
+.notif{position:absolute;left:10px;right:10px;top:40px;background:#fff;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.28);padding:11px 14px 12px;z-index:25;display:flex;gap:11px;animation:drop .35s ease}
+@keyframes drop{from{transform:translateY(-16px);opacity:0}to{transform:none;opacity:1}}
+.notif .ni{width:30px;height:30px;border-radius:50%;background:#009688;display:grid;place-items:center;flex:none}
+.notif b{font-size:14.5px;display:block}
+.notif span{font-size:13.5px;color:#444;line-height:18px;display:block}
+.notif em{font-style:normal;color:#009688;font-size:13.5px;font-weight:700;display:block;margin-top:5px}
+.syncbar{position:absolute;left:0;right:0;bottom:66px;background:#212121;color:#fff;font-size:13.5px;padding:8px 14px;z-index:15;display:flex;align-items:center;gap:10px}
+.syncbar .sp{width:14px;height:14px;border:2px solid #4dd0c4;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  #app{grid-template-columns:1fr}
+  #guide{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding-right:max(16px,env(safe-area-inset-right,0px));padding-left:max(16px,env(safe-area-inset-left,0px))}
+  #stage{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important} }
+</style>
+</head><body>
+
+<div id="app">
+  <aside id="guide" aria-label="Guide">
+    <div class="brand"><div class="mark">a</div><div><b>Camp Mode</b><span>Avni 18.3 · three phones, no internet</span></div></div>
+    <p class="lede">A mobile clinic sets up in a village with no network. The registration desk, the nurse and the doctor each work on their own phone, and the same patient moves between them as one team.</p>
+    <div class="stepcard" aria-live="polite">
+      <div class="sn"><span id="sn">Step 1 of 12</span><span id="sw"></span></div>
+      <h2 id="st"></h2>
+      <div id="sb"></div>
+    </div>
+    <div class="ctrl">
+      <button class="btn" id="back">Back</button>
+      <button class="btn pri" id="next">Next</button>
+      <button class="btn" id="replay">Play this step again</button>
+    </div>
+    <div class="dotnav" id="dots" aria-label="Jump to a step"></div>
+    <div class="facts">
+      <div><b>One phone is the hub.</b> It starts its own Wi-Fi, and the other phones join it by scanning its code.</div>
+      <div><b>Joined phones share every 30 seconds by themselves.</b> Nobody presses a button.</div>
+      <div><b>Nothing goes to the server during the camp.</b> When the camp ends and the internet is back, each phone uploads its own records.</div>
+      <div>Everyone and everything in this demo is made up.</div>
+    </div>
+  </aside>
+  <main id="stage">
+    <div class="strip">
+      <span class="pill off" id="net"><i></i><b>No internet</b> in the village</span>
+      <span class="pill wifi" id="wifi" hidden><i></i>Hub Wi-Fi <b>AndroidShare_4821</b></span>
+      <span class="pill server" id="srv"><i></i>Server: <b id="srvt">not reachable</b></span>
+    </div>
+    <div id="phones-wrap">
+      <div id="phones">
+        <svg id="links" aria-hidden="true"></svg>
+      </div>
+    </div>
+    <div class="caption" id="cap"></div>
+  </main>
+</div>
+
+<script>
+(() => {
+'use strict';
+/* ---------------- people, phones, records (all invented) ---------------- */
+const NET = 'AndroidShare_4821', PASS = 'k7q2mfw9rt4xa8bz';
+const PH = {
+  desk:  {name:'Desk', user:'Meera', login:'meera@clinicdemo', model:'Galaxy A15', label:'Registration desk', who:'desk'},
+  nurse: {name:'Nurse', user:'Sunita', login:'sunita@clinicdemo', model:'Redmi 13C', label:'Nurse', who:'nurse'},
+  doc:   {name:'Doctor', user:'Dr. Arif', login:'arif@clinicdemo', model:'Moto G54', label:'Doctor', who:'doc'}
+};
+const IDS = ['desk','nurse','doc'];
+const PATIENT = {name:'Lakshmi Rao', age:'34 years', gender:'Female', village:'Hirapur', init:'L'};
+const VITALS = [['Blood pressure','128/84 mmHg'],['Weight','52 kg'],['Temperature','99.1 °F']];
+const CONSULT = [['Diagnosis','Fever, mild anaemia'],['Medicines','Paracetamol 500 mg, iron tablets'],['Follow up','In 2 weeks']];
+
+/* ---------------- state ---------------- */
+let S, run = 0;
+function fresh(){
+  const p = id => ({screen:'home', tab:'home', has:{patient:false, vitals:false, consult:false}, camp:'none', lastHub:null, notif:null, toast:null, dlg:null, sync:null, form:null, pressed:null, newRow:false, newVisit:null, bump:null, hubErr:null});
+  return {clock:10*60, phones:{desk:p(), nurse:p(), doc:p()}, hub:{running:false, phones:[], ending:false}, wifi:false, internet:false, server:{patient:false, vitals:false, consult:false}, caption:''};
+}
+const tm = m => { const h = Math.floor(m/60), mm = String(m%60).padStart(2,'0'); return `${((h+11)%12)+1}:${mm} ${h<12?'AM':'PM'}`; };
+
+/* ---------------- icons ---------------- */
+const I = {
+  home:'<svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+  add:'<svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M15 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>',
+  menu:'<svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>',
+  back:'<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg>',
+  homeW:'<svg width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+  hub:'<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#555" d="M12 11c-1.1 0-2 .9-2 2 0 .7.4 1.4 1 1.7V22h2v-7.3c.6-.3 1-1 1-1.7 0-1.1-.9-2-2-2zm-6 2c0-3.3 2.7-6 6-6s6 2.7 6 6c0 1.7-.7 3.2-1.8 4.2l1.4 1.4C19.1 17.2 20 15.2 20 13c0-4.4-3.6-8-8-8s-8 3.6-8 8c0 2.2.9 4.2 2.3 5.7l1.4-1.4C6.7 16.2 6 14.7 6 13z"/></svg>',
+  dash:'<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#555" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>',
+  sync:'<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#555" d="M12 4V1L8 5l4 4V6c3.3 0 6 2.7 6 6 0 1-.3 2-.7 2.8l1.5 1.5C19.5 15 20 13.6 20 12c0-4.4-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6 0-1 .3-2 .7-2.8L5.2 7.7C4.5 9 4 10.4 4 12c0 4.4 3.6 8 8 8v3l4-4-4-4v3z"/></svg>',
+  key:'<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#555" d="M12.7 10C11.9 7.7 9.6 6 7 6c-3.3 0-6 2.7-6 6s2.7 6 6 6c2.6 0 4.9-1.7 5.7-4H17v4h4v-4h2v-4H12.7zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>',
+  out:'<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#555" d="M10.1 15.6 11.5 17l5-5-5-5-1.4 1.4 2.6 2.6H3v2h9.7l-2.6 2.6zM19 3H5c-1.1 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>',
+  chev:'<svg width="22" height="22" viewBox="0 0 24 24"><path fill="#009688" d="M10 6 8.6 7.4l4.6 4.6-4.6 4.6L10 18l6-6z"/></svg>',
+  user:'<svg width="40" height="40" viewBox="0 0 24 24"><path fill="#fff" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 3c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3zm0 14.2c-2.5 0-4.7-1.3-6-3.2 0-2 4-3.1 6-3.1s6 1.1 6 3.1c-1.3 1.9-3.5 3.2-6 3.2z"/></svg>',
+  wifiS:'<svg width="15" height="15" viewBox="0 0 24 24"><path fill="#fff" d="M1 9l2 2c5-5 13-5 18 0l2-2C16.9 2.9 7.1 2.9 1 9zm8 8 3 3 3-3c-1.7-1.7-4.3-1.7-6 0zm-4-4 2 2c2.8-2.8 7.2-2.8 10 0l2-2C15.1 9.1 8.9 9.1 5 13z"/></svg>',
+  hotS:'<svg width="15" height="15" viewBox="0 0 24 24"><path fill="#fff" d="M12 11c-1.1 0-2 .9-2 2 0 .7.4 1.4 1 1.7V22h2v-7.3c.6-.3 1-1 1-1.7 0-1.1-.9-2-2-2zm-6 2c0-3.3 2.7-6 6-6s6 2.7 6 6c0 1.7-.7 3.2-1.8 4.2l1.4 1.4C19.1 17.2 20 15.2 20 13c0-4.4-3.6-8-8-8s-8 3.6-8 8c0 2.2.9 4.2 2.3 5.7l1.4-1.4C6.7 16.2 6 14.7 6 13z"/></svg>',
+  noSig:'<svg width="15" height="15" viewBox="0 0 24 24"><path fill="#9e9e9e" d="M2 22h20V2z" opacity=".35"/><path fill="#fff" d="M21 7.5 19.6 6 17 8.6 14.4 6 13 7.5l2.6 2.5L13 12.6l1.4 1.4 2.6-2.6 2.6 2.6 1.4-1.4-2.6-2.6z"/></svg>',
+  bell:'<svg width="17" height="17" viewBox="0 0 24 24"><path fill="#fff" d="M12 11c-1.1 0-2 .9-2 2 0 .7.4 1.4 1 1.7V22h2v-7.3c.6-.3 1-1 1-1.7 0-1.1-.9-2-2-2zm-6 2c0-3.3 2.7-6 6-6s6 2.7 6 6c0 1.7-.7 3.2-1.8 4.2l1.4 1.4C19.1 17.2 20 15.2 20 13c0-4.4-3.6-8-8-8s-8 3.6-8 8c0 2.2.9 4.2 2.3 5.7l1.4-1.4C6.7 16.2 6 14.7 6 13z"/></svg>'
+};
+
+/* ---------------- fake hub code (an illustration, not a scannable code) ---------------- */
+function drawCode(canvas, size){
+  const n = 29, c = canvas.getContext('2d'), px = Math.floor(size/n);
+  canvas.width = canvas.height = px*n; c.fillStyle = '#fff'; c.fillRect(0,0,px*n,px*n); c.fillStyle = '#111';
+  let seed = 4821; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  const finder = (x,y) => { for(let i=0;i<7;i++)for(let j=0;j<7;j++){ const e = i===0||j===0||i===6||j===6, core = i>=2&&i<=4&&j>=2&&j<=4; if(e||core) c.fillRect((x+i)*px,(y+j)*px,px,px);} };
+  const inF = (i,j) => (i<8&&j<8)||(i>n-9&&j<8)||(i<8&&j>n-9);
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){ if(!inF(i,j) && rnd()>.52) c.fillRect(i*px,j*px,px,px); }
+  finder(0,0); finder(n-7,0); finder(0,n-7);
+}
+
+/* ---------------- screens ---------------- */
+function status(id){
+  const p = S.phones[id], icons = [];
+  if (id==='desk' && S.hub.running) icons.push(I.hotS);
+  if (id!=='desk' && p.camp==='joined') icons.push(I.wifiS);
+  if (p.camp==='joined' || (id==='desk' && S.hub.running)) icons.push(I.bell);
+  icons.push(S.internet ? '<svg width="15" height="15" viewBox="0 0 24 24"><path fill="#fff" d="M2 22h20V2z"/></svg>' : I.noSig);
+  return `<div class="sb"><span>${tm(S.clock)}</span><span class="ic">${icons.join('')}<span class="bat">${id==='desk'?82:id==='nurse'?67:74}</span></span></div>`;
+}
+function header(title, back){ return `<div class="hd">${back?`<div class="hb">${I.back}</div>`:''}<div class="ttl">${title}</div>${back?`<div class="hb">${I.homeW}</div>`:''}</div>`; }
+function tabs(on){ return `<div class="tabs">${[['home','Home',I.home],['register','Register',I.add],['more','More',I.menu]].map(([k,l,ic])=>`<div class="tab ${on===k?'on':''}">${ic}<span>${l}</span></div>`).join('')}</div>`; }
+function counts(p){ return [p.has.patient?1:0, p.has.vitals?1:0, p.has.consult?1:0]; }
+function homeScreen(id){
+  const p = S.phones[id], [a,b,c] = counts(p);
+  const card = (n,l,bg,k) => `<div class="dc ${p.bump===k?'bump':''}" style="background:${bg}"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+  const rows = p.has.patient ? `<div class="row ${p.newRow?'new':''}"><div class="av">${PATIENT.init}</div><div><div class="rn">${PATIENT.name}</div><div class="rs">${PATIENT.gender} · ${PATIENT.age} · ${PATIENT.village}</div>
+     <div>${p.has.vitals?'<span class="chipv" style="background:#e8890c">Vitals</span>':''}${p.has.consult?'<span class="chipv" style="background:#7b3fb3">Consultation</span>':''}</div></div></div>` : `<div class="empty">No patients yet today</div>`;
+  return header('Home') + `<div class="scr gray"><div class="sec"><h4>Today's camp</h4><div class="cards">${card(a,'Registered','#e3f2fd','patient')}${card(b,'Vitals done','#fff3e0','vitals')}${card(c,'Seen by doctor','#f3e5f5','consult')}${card(Math.max(0,a-c),'Still waiting','#e8f5e9','wait')}</div></div>
+    <div class="cap">Patients</div><div style="background:#fff;margin:0 8px">${rows}</div></div>` + tabs('home');
+}
+function moreScreen(id){
+  const p = S.phones[id], u = PH[id];
+  const item = (ic,l,hl) => `<div class="mi ${hl?'hl':''}">${ic}<span>${l}</span>${I.chev}</div>`;
+  return `<div class="mu">${I.user}<div><b>${u.login} - ${u.user}</b><span>Edit Settings</span></div></div><div class="scr gray">
+    <div class="mg">${item(I.dash,'Dashboards')}</div>
+    <div class="mg">${item(I.sync,'Entity Sync Status')}${item(I.sync,'Setup fast sync')}${item(I.hub,'Camp mode',p.pressed==='camp')}</div>
+    <div class="mg">${item(I.key,'Change Password')}<div class="mi">${I.out}<span>Logout</span></div></div></div>` + tabs('more');
+}
+function campIdle(id){
+  const p = S.phones[id];
+  return header('Camp mode', true) + `<div class="scr"><div class="cm">
+    ${p.hubErr?`<div class="err">${p.hubErr}</div>`:''}
+    <h5>Join the camp's hub</h5><div class="tb ${p.pressed==='scan'?'press':''}">Scan to join</div>
+    <h5>Make this phone the hub</h5><p>Start the hub on one phone. Other phones in the camp scan its code to share records with it.</p>
+    <div class="tb ${p.pressed==='start'?'press':''}">Start hub</div></div></div>`;
+}
+function hubScreen(id){
+  const h = S.hub, p = S.phones[id];
+  let list = '';
+  if (h.ending) list = h.phones.map(x => `<div>${x.label}: ${x.left?'left the camp':`not left yet, last synced at ${tm(x.at)}`}</div>`).join('');
+  else list = h.phones.map(x => `<div>${x.label}: last synced at ${tm(x.at)}</div>`).join('');
+  const recent = h.phones.filter(x => S.clock - x.at <= 5).length;
+  const tail = h.ending
+    ? `<p>When every phone has left, or you skipped the ones that are gone, close the hub. It deletes the records and photos it kept for the other phones.</p><div class="gb ${p.pressed==='close'?'press':''}">Close hub</div>`
+    : `<p>When the camp is over, tap End camp. Each phone does one last sync with the hub, then leaves the camp.</p><div class="gb ${p.pressed==='end'?'press':''}">End camp</div>`;
+  return header('Camp mode', true) + `<div class="scr"><div class="cm"><canvas class="qr" data-code="1" width="190" height="190"></canvas>
+    <div class="meta">Network: ${NET}<br>Password: ${PASS}</div>
+    <p style="margin-top:12px">${h.ending?'Ending the camp. Each phone leaves at its next sync.':`Phones synced in the last 5 minutes: ${recent}`}</p>
+    ${list?`<div class="plist">${list}</div>`:''}${tail}</div></div>`;
+}
+function scanScreen(){
+  return header('Camp mode', true) + `<div class="scr"><div class="cam"><div class="frame"><canvas data-code="1" width="170" height="170"></canvas><div class="scanline"></div></div>
+    <p>Point the camera at the code on the hub phone.</p><div class="cancel">CANCEL</div></div></div>`;
+}
+function joinedScreen(id){
+  const p = S.phones[id];
+  if (p.camp==='left') return header('Camp mode', true) + `<div class="scr"><div class="cm"><p>The hub ended the camp, and this phone has left it. You can sync with the server again.</p>
+    <h5>Join the camp's hub</h5><div class="tb">Scan to join</div><h5>Make this phone the hub</h5><p>Start the hub on one phone. Other phones in the camp scan its code to share records with it.</p><div class="tb">Start hub</div></div></div>`;
+  return header('Camp mode', true) + `<div class="scr"><div class="cm"><h5>Joined to ${NET}</h5>
+    <p>${p.lastHub!==null?`Last synced with the hub at ${tm(p.lastHub)}`:'Not synced with the hub yet'}</p>
+    <p>This phone is in a camp. It syncs with the server only after it leaves the camp.</p>
+    <div class="tb">Sync with hub</div><div class="gb">Leave camp</div></div></div>`;
+}
+function field(label, val, typing, mand){ return `<div class="fe"><div class="fl">${label}${mand?' <i>*</i>':''}</div><div class="fv ${typing?'typing':''}">${val||'<span class="ph">&nbsp;</span>'}</div></div>`; }
+function regForm(id){
+  const f = S.phones[id].form || {};
+  const g = v => `<div class="opts">${['Male','Female','Other'].map(o=>`<div class="opt ${v===o?'on':''}"><span class="rd"></span>${o}</div>`).join('')}</div>`;
+  return header('Patient registration', true) + `<div class="scr"><div class="fm"><div class="fgt">Basic details</div>
+    ${field('Name', f.name, f.at==='name', true)}${field('Age', f.age, f.at==='age', true)}
+    <div class="fe"><div class="fl">Gender <i>*</i></div>${g(f.gender)}</div>
+    ${field('Village', f.village, f.at==='village', true)}
+    <div class="fbt"><div class="fb pv">PREVIOUS</div><div class="fb nx ${S.phones[id].pressed==='save'?'press':''}">SAVE</div></div></div></div>`;
+}
+function visitForm(id, title, rows){
+  const f = S.phones[id].form || {vals:[]};
+  return header(title, true) + `<div class="scr"><div class="fm"><div class="fsub"><b>${PATIENT.name}</b><span>${PATIENT.gender} · ${PATIENT.age}</span></div>
+    <div class="fgt">${title}</div>${rows.map((r,i)=>field(r[0], f.vals[i], f.at===i, true)).join('')}
+    <div class="fbt"><div class="fb pv">PREVIOUS</div><div class="fb nx ${S.phones[id].pressed==='save'?'press':''}">SAVE</div></div></div></div>`;
+}
+function visitCard(title, rows, by, color, isNew){
+  return `<div class="vc ${isNew?'new':''}"><div class="vt">${title}<small style="background:${color}">Completed</small></div><div class="vd">Today, ${by.time}</div><div class="by">Recorded by ${by.who} on the ${by.phone} phone</div>
+    <table class="obs">${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table></div>`;
+}
+function profile(id){
+  const p = S.phones[id];
+  const vit = p.has.vitals ? visitCard('Vitals', VITALS, {who:'Sunita', phone:'nurse', time:tm(S.clock0v||S.clock)}, '#e8890c', p.newVisit==='vitals') : '';
+  const con = p.has.consult ? visitCard('Consultation', CONSULT, {who:'Dr. Arif', phone:'doctor', time:tm(S.clock0c||S.clock)}, '#7b3fb3', p.newVisit==='consult') : '';
+  const action = id==='nurse' && !p.has.vitals ? 'Record vitals' : id==='doc' && !p.has.consult ? 'Start consultation' : '';
+  return header('Patient', true) + `<div class="scr"><div class="ph2"><div class="av">${PATIENT.init}</div><div><b>${PATIENT.name}</b><span>${PATIENT.gender} · ${PATIENT.age}</span><span>${PATIENT.village}</span></div></div>
+    ${action?`<div class="tbtn ${p.pressed==='act'?'press':''}">${action}</div>`:''}<div class="cap">Completed visits</div>${vit||con?vit+con:'<div class="empty">No visits yet</div>'}</div>`;
+}
+function phoneHTML(id){
+  const p = S.phones[id];
+  let body;
+  switch(p.screen){
+    case 'home': body = homeScreen(id); break;
+    case 'more': body = moreScreen(id); break;
+    case 'camp': body = S.hub.running && id==='desk' ? hubScreen(id) : (p.camp==='joined'||p.camp==='left') ? joinedScreen(id) : campIdle(id); break;
+    case 'scan': body = scanScreen(); break;
+    case 'reg': body = regForm(id); break;
+    case 'vitals': body = visitForm(id, 'Vitals', VITALS); break;
+    case 'consult': body = visitForm(id, 'Consultation', CONSULT); break;
+    case 'profile': body = profile(id); break;
+    default: body = homeScreen(id);
+  }
+  let extra = '';
+  if (p.sync) extra += `<div class="syncbar"><span class="sp"></span>${p.sync}</div>`;
+  if (p.toast) extra += `<div class="toast">${p.toast}</div>`;
+  if (p.notif) extra += `<div class="notif"><div class="ni">${I.bell}</div><div><b>${p.notif.t}</b><span>${p.notif.s}</span>${p.notif.a?`<em>${p.notif.a}</em>`:''}</div></div>`;
+  if (p.dlg) extra += `<div class="ov"><div class="dlg"><h6>${p.dlg.t}</h6><p>${p.dlg.m}</p><div class="da">${p.dlg.b.map((b,i)=>`<span class="${p.dlg.press===i?'press':''}">${b}</span>`).join('')}</div></div></div>`;
+  return status(id) + body + extra;
+}
+
+/* ---------------- stage render ---------------- */
+const elPhones = document.getElementById('phones');
+let SCALE = .62;
+function buildStage(){
+  IDS.forEach(id => {
+    const col = document.createElement('div'); col.className = 'col'; col.id = 'col-'+id;
+    col.innerHTML = `<div class="role"><span>${PH[id].label}</span><small>${PH[id].user}</small><span class="tag none" id="tag-${id}"></span></div>
+      <div class="scaler" id="sc-${id}"><div class="bezel"><div class="phone" id="ph-${id}"></div></div></div>`;
+    elPhones.appendChild(col);
+  });
+  fit();
+}
+function fit(){
+  const wrap = document.getElementById('phones-wrap'), w = wrap.clientWidth - 12;
+  const byW = (w - 2*28) / (3*408), byH = (window.innerHeight - 190) / 856;
+  SCALE = Math.max(.34, Math.min(.72, byW, byH > .3 ? byH : .72));
+  IDS.forEach(id => { const sc = document.getElementById('sc-'+id), bz = sc.firstElementChild; bz.style.transform = `scale(${SCALE})`; sc.style.width = 408*SCALE+'px'; sc.style.height = 856*SCALE+'px'; });
+  drawLinks();
+}
+function render(){
+  IDS.forEach(id => {
+    const el = document.getElementById('ph-'+id); el.innerHTML = phoneHTML(id);
+    el.querySelectorAll('canvas[data-code]').forEach(c => drawCode(c, +c.getAttribute('width')));
+    const p = S.phones[id], tag = document.getElementById('tag-'+id);
+    if (id==='desk' && S.hub.running){ tag.className='tag'; tag.textContent='HUB'; }
+    else if (p.camp==='joined'){ tag.className='tag spoke'; tag.textContent='JOINED'; }
+    else { tag.className='tag none'; tag.textContent=''; }
+  });
+  document.getElementById('wifi').hidden = !S.wifi;
+  const net = document.getElementById('net'); net.className = 'pill '+(S.internet?'on':'off'); net.innerHTML = S.internet ? '<i></i><b>Internet is back</b>' : '<i></i><b>No internet</b> in the village';
+  const sv = document.getElementById('srv'); sv.className = 'pill server'+(S.internet?' on':'');
+  document.getElementById('srvt').textContent = S.internet ? `${['patient','vitals','consult'].filter(k=>S.server[k]).length} of 3 records received` : 'not reachable';
+  document.getElementById('cap').textContent = S.caption || '';
+  drawLinks();
+}
+function center(id, part){
+  const ph = document.getElementById('sc-'+id), host = elPhones.getBoundingClientRect(), r = ph.getBoundingClientRect();
+  return {x: r.left - host.left + r.width/2, y: r.top - host.top + (part==='top' ? 30*SCALE : r.height*0.42)};
+}
+function drawLinks(){
+  const svg = document.getElementById('links'); if (!S || !svg) return;
+  const host = elPhones.getBoundingClientRect(); svg.setAttribute('width', host.width); svg.setAttribute('height', host.height);
+  let out = '';
+  ['nurse','doc'].forEach(id => {
+    if (S.phones[id].camp !== 'joined') return;
+    const a = center('desk','top'), b = center(id,'top'), mid = (a.x+b.x)/2, lift = -26 - (id==='doc'?22:0);
+    out += `<path d="M${a.x} ${a.y} Q ${mid} ${Math.min(a.y,b.y)+lift} ${b.x} ${b.y}" fill="none" stroke="#009688" stroke-width="2.5" stroke-dasharray="6 6" opacity=".75"/>`;
+  });
+  svg.innerHTML = out;
+}
+
+/* ---------------- animation helpers ---------------- */
+const wait = ms => new Promise(r => setTimeout(r, ms));
+let FAST = false;
+async function pause(ms, token){ if (FAST) return; await wait(ms); if (token !== run) throw 'stop'; }
+function flyPacket(from, to, label, token, cls=''){
+  if (FAST) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const a = from==='server' ? serverPoint() : center(from,'top'), b = to==='server' ? serverPoint() : center(to,'top');
+    const el = document.createElement('div'); el.className = 'packet '+cls; el.textContent = label; elPhones.appendChild(el);
+    const mid = {x:(a.x+b.x)/2, y:Math.min(a.y,b.y) - 60}, dur = 1300, t0 = performance.now();
+    const step = now => {
+      if (token !== run){ el.remove(); return rej('stop'); }
+      const t = Math.min(1,(now-t0)/dur), e = t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      const x = (1-e)*(1-e)*a.x + 2*(1-e)*e*mid.x + e*e*b.x, y = (1-e)*(1-e)*a.y + 2*(1-e)*e*mid.y + e*e*b.y;
+      el.style.left = x+'px'; el.style.top = y+'px';
+      if (t < 1) requestAnimationFrame(step); else { el.remove(); res(); }
+    };
+    requestAnimationFrame(step);
+  });
+}
+function serverPoint(){ const r = document.getElementById('srv').getBoundingClientRect(), host = elPhones.getBoundingClientRect(); return {x:r.left-host.left+r.width/2, y:r.bottom-host.top}; }
+async function type(id, key, text, token, idx){
+  const p = S.phones[id];
+  if (FAST){ if (idx===undefined) p.form[key] = text; else p.form.vals[idx] = text; return; }
+  p.form.at = idx===undefined ? key : idx;
+  for (let i=1;i<=text.length;i++){ if (idx===undefined) p.form[key] = text.slice(0,i); else p.form.vals[idx] = text.slice(0,i); render(); await pause(38, token); }
+  p.form.at = null; render(); await pause(250, token);
+}
+async function tap(id, what, token, ms=520){ const p = S.phones[id]; p.pressed = what; render(); await pause(ms, token); p.pressed = null; }
+function hubSaw(label, at){ const x = S.hub.phones.find(q => q.label===label); if (x) x.at = at; else S.hub.phones.push({label, at, left:false}); }
+/* one share between a joined phone and the hub: what the phone has goes up, what the hub has comes down */
+async function share(id, token, opts={}){
+  const p = S.phones[id], hub = S.phones.desk, keys = ['patient','vitals','consult'];
+  const up = keys.filter(k => p.has[k] && !hub.has[k]), down = keys.filter(k => hub.has[k] && !p.has[k]);
+  p.sync = 'In a camp: syncing with the hub.'; render(); await pause(500, token);
+  for (const k of up){ await flyPacket(id,'desk',k==='patient'?'P':k==='vitals'?'V':'C', token); hub.has[k] = true; hub.bump = k; if (hub.screen==='profile') hub.newVisit = k; }
+  for (const k of down){ await flyPacket('desk',id,k==='patient'?'P':k==='vitals'?'V':'C', token); p.has[k] = true; p.bump = k; if (k==='patient') p.newRow = true; if (p.screen==='profile') p.newVisit = k; }
+  p.lastHub = S.clock; hubSaw(PH[id].label+' · '+PH[id].model, S.clock);
+  p.sync = null; p.toast = opts.quiet ? null : 'Synced with the hub.'; render(); await pause(900, token); p.toast = null; render();
+}
+
+/* ---------------- the story ---------------- */
+const who = k => `<span class="who ${k}">${k==='desk'?'Desk':k==='nurse'?'Nurse':'Doctor'}</span>`;
+const STEPS = [
+  { t:'Three phones, no internet', w:'',
+    b:`<p>The clinic van has parked in Hirapur. There is no mobile network here.</p><p>${who('desk')} registers patients, ${who('nurse')} takes vitals, and ${who('doc')} sees them. Each has Avni on their own phone, and right now the phones know nothing about each other.</p>`,
+    cap:'All three phones are on Home. Nothing has been recorded yet.',
+    async run(tk){ } },
+  { t:'The desk opens Camp mode', w:'desk',
+    b:`<p>${who('desk')} opens <b>More</b> and taps <b>Camp mode</b>.</p><p>It shows two choices: join a hub that is already running, or make this phone the hub.</p>`,
+    cap:'Camp mode is in the More menu once the organisation has turned it on.',
+    async run(tk){ const d = S.phones.desk; d.screen='more'; render(); await pause(700,tk); await tap('desk','camp',tk); d.screen='camp'; } },
+  { t:'The desk phone becomes the hub', w:'desk',
+    b:`<p>${who('desk')} taps <b>Start hub</b>. The phone starts its own Wi-Fi network and shows a code for the others to scan.</p><p>The hub is still a working phone: the desk keeps registering patients on it.</p>`,
+    cap:'The hub shows its code, its Wi-Fi name and password, and the phones that have synced with it.',
+    async run(tk){ const d = S.phones.desk; d.screen='camp'; render(); await pause(400,tk); await tap('desk','start',tk);
+      S.hub.running = true; S.wifi = true; d.notif = {t:'Sharing camp records', s:'Phones in this camp can sync with this phone.', a:'STOP'}; render(); await pause(1700,tk); d.notif = null; } },
+  { t:'The nurse joins the hub', w:'nurse',
+    b:`<p>${who('nurse')} opens Camp mode, taps <b>Scan to join</b> and points the camera at the code on the desk's phone.</p><p>Her phone connects to the hub's Wi-Fi and goes back to Home. A notice says she is in a camp.</p>`,
+    cap:'Joining takes one scan. No passwords are typed.',
+    async run(tk){ const n = S.phones.nurse; n.screen='more'; render(); await pause(500,tk); await tap('nurse','camp',tk,380); n.screen='camp'; render(); await pause(500,tk);
+      await tap('nurse','scan',tk); n.screen='scan'; render(); await pause(1600,tk);
+      n.camp='joined'; n.screen='home'; n.lastHub=S.clock; hubSaw(PH.nurse.label+' · '+PH.nurse.model, S.clock);
+      n.notif = {t:'In a camp', s:"This phone shares records with the hub while it is on the hub's Wi-Fi.", a:'LEAVE CAMP'}; render(); await pause(1800,tk); n.notif=null; } },
+  { t:'The doctor joins too', w:'doc',
+    b:`<p>${who('doc')} does the same. Now the hub lists two phones that have synced with it in the last 5 minutes.</p>`,
+    cap:'The hub keeps a list of every phone, by its user and phone model, with when it last synced.',
+    async run(tk){ S.clock += 2; const c = S.phones.doc; c.screen='more'; render(); await pause(400,tk); await tap('doc','camp',tk,380); c.screen='camp'; render(); await pause(400,tk);
+      await tap('doc','scan',tk); c.screen='scan'; render(); await pause(1400,tk);
+      c.camp='joined'; c.screen='home'; c.lastHub=S.clock; hubSaw(PH.doc.label+' · '+PH.doc.model, S.clock);
+      c.notif = {t:'In a camp', s:"This phone shares records with the hub while it is on the hub's Wi-Fi.", a:'LEAVE CAMP'}; render(); await pause(1600,tk); c.notif=null; } },
+  { t:'The desk registers a patient', w:'desk',
+    b:`<p>Lakshmi Rao arrives at the desk. ${who('desk')} registers her the usual way: name, age, gender and village, then <b>Save</b>.</p><p>The record is saved on the desk's phone, which is also the hub.</p>`,
+    cap:'Registration works exactly as it does without Camp mode.',
+    async run(tk){ S.clock += 6; const d = S.phones.desk; d.screen='home'; render(); await pause(500,tk); d.screen='reg'; d.form={}; render(); await pause(400,tk);
+      await type('desk','name',PATIENT.name,tk); await type('desk','age','34',tk); d.form.gender='Female'; render(); await pause(400,tk); await type('desk','village',PATIENT.village,tk);
+      await tap('desk','save',tk); d.has.patient = true; d.form=null; d.screen='home'; d.newRow = true; d.bump='patient'; d.toast='Saved'; render(); await pause(1100,tk); d.toast=null; } },
+  { t:'Within 30 seconds, she is on the nurse\'s phone', w:'nurse',
+    b:`<p>Nobody presses anything. Every 30 seconds each joined phone syncs with the hub by itself, while Avni is open.</p><p>On its next sync, ${who('nurse')}'s phone picks up the new patient. ${who('doc')}'s phone gets her too.</p>`,
+    cap:'The orange packet is one record moving over the hub\'s Wi-Fi. There is still no internet.',
+    async run(tk){ S.clock += 1; render(); await pause(400,tk); await share('nurse',tk); await share('doc',tk,{quiet:true}); } },
+  { t:'The nurse records vitals', w:'nurse',
+    b:`<p>${who('nurse')} opens Lakshmi from her Home list and records blood pressure, weight and temperature.</p><p>On her next sync the visit goes up to the hub, and from there down to the doctor.</p>`,
+    cap:'A record made on any phone reaches every other phone through the hub.',
+    async run(tk){ S.clock += 4; const n = S.phones.nurse; n.screen='profile'; n.newRow=false; render(); await pause(700,tk); await tap('nurse','act',tk);
+      n.screen='vitals'; n.form={vals:[]}; render(); await pause(300,tk);
+      for (let i=0;i<VITALS.length;i++) await type('nurse',null,VITALS[i][1],tk,i);
+      await tap('nurse','save',tk); n.has.vitals=true; S.clock0v = S.clock; n.form=null; n.screen='profile'; n.newVisit='vitals'; render(); await pause(900,tk);
+      S.clock += 1; await share('nurse',tk,{quiet:true}); S.phones.doc.screen='home'; await share('doc',tk); } },
+  { t:'The doctor sees the vitals and treats her', w:'doc',
+    b:`<p>${who('doc')} opens Lakshmi. The nurse's vitals are already there, marked as recorded on the nurse's phone.</p><p>He records the diagnosis and medicines. That consultation travels back to the desk and the nurse the same way.</p>`,
+    cap:'Each phone now holds the full patient: registration, vitals and consultation.',
+    async run(tk){ S.clock += 3; const c = S.phones.doc; c.screen='profile'; c.newVisit=null; render(); await pause(1400,tk); await tap('doc','act',tk);
+      c.screen='consult'; c.form={vals:[]}; render(); await pause(300,tk);
+      for (let i=0;i<CONSULT.length;i++) await type('doc',null,CONSULT[i][1],tk,i);
+      await tap('doc','save',tk); c.has.consult=true; S.clock0c = S.clock; c.form=null; c.screen='profile'; c.newVisit='consult'; render(); await pause(900,tk);
+      S.clock += 1; await share('doc',tk,{quiet:true}); S.phones.nurse.screen='home'; await share('nurse',tk); } },
+  { t:'The desk ends the camp', w:'desk',
+    b:`<p>The clinic is over. ${who('desk')} opens Camp mode and taps <b>End camp</b>, and confirms.</p><p>Each phone does one last sync with the hub, then leaves the camp. The hub shows who has left.</p>`,
+    cap:'Ending a camp asks for confirmation first, because it cannot be undone.',
+    async run(tk){ S.clock = 13*60+40; const d = S.phones.desk; d.screen='camp'; render(); await pause(700,tk); await tap('desk','end',tk);
+      d.dlg = {t:'End camp', m:'End the camp? Each phone does one last sync with the hub, then leaves the camp. This cannot be undone.', b:['CANCEL','END CAMP']}; render(); await pause(1600,tk);
+      d.dlg.press = 1; render(); await pause(450,tk); d.dlg = null; S.hub.ending = true; S.hub.phones.forEach(x => x.left=false); render(); await pause(900,tk);
+      for (const id of ['nurse','doc']){ const p = S.phones[id]; p.sync='In a camp: syncing with the hub.'; render(); await pause(800,tk); p.sync=null; p.camp='left'; p.screen='camp';
+        const x = S.hub.phones.find(q => q.label.startsWith(PH[id].label)); if (x){ x.left = true; x.at = S.clock; } render(); await pause(700,tk); } } },
+  { t:'The desk closes the hub', w:'desk',
+    b:`<p>With both phones gone, ${who('desk')} taps <b>Close hub</b>. The hub's Wi-Fi stops, and it deletes the copies it kept for the other phones.</p><p>Every phone still has its own records, waiting to upload.</p>`,
+    cap:'The other phones were told the camp ended, and can sync with the server again.',
+    async run(tk){ const d = S.phones.desk; d.screen='camp'; render(); await pause(700,tk); await tap('desk','close',tk);
+      S.hub.running = false; S.hub.ending = false; S.hub.phones = []; S.wifi = false; d.screen='home';
+      S.phones.nurse.screen='home'; S.phones.doc.screen='home'; render(); } },
+  { t:'Back in town, each record reaches the server once', w:'',
+    b:`<p>The van drives back into network range. Each phone syncs with the server as usual.</p><p>Every record arrives once, under the person who recorded it: the registration from the desk, the vitals from the nurse, the consultation from the doctor.</p>`,
+    cap:'The server now has the whole visit, exactly as if the clinic had had internet all day.',
+    async run(tk){ S.clock = 15*60+5; S.internet = true; render(); await pause(800,tk);
+      const plan = [['desk','patient','P'],['nurse','vitals','V'],['doc','consult','C']];
+      for (const [id,k,l] of plan){ const p = S.phones[id]; p.sync='Syncing with the server'; render(); await pause(400,tk); await flyPacket(id,'server',l,tk,'srv'); S.server[k]=true; p.sync=null; p.toast='Sync complete'; render(); await pause(700,tk); p.toast=null; render(); } } }
+];
+
+/* ---------------- step engine ---------------- */
+let cur = 0;
+function setGuide(){
+  const s = STEPS[cur];
+  document.getElementById('sn').textContent = `Step ${cur+1} of ${STEPS.length}`;
+  document.getElementById('sw').textContent = s.w ? PH[s.w].label : '';
+  document.getElementById('st').textContent = s.t;
+  document.getElementById('sb').innerHTML = s.b;
+  document.getElementById('back').disabled = cur===0;
+  document.getElementById('next').textContent = cur===STEPS.length-1 ? 'Start again' : 'Next';
+  document.querySelectorAll('#dots button').forEach((b,i) => { b.className = i<cur?'done':i===cur?'cur':''; b.setAttribute('aria-current', i===cur?'step':'false'); });
+}
+async function goTo(k, animate=true){
+  const token = ++run; cur = k; S = fresh(); setGuide();
+  FAST = true;
+  for (let i=0;i<k;i++){ try { await STEPS[i].run(token); } catch(e){} clearTransient(); }
+  FAST = !animate;
+  S.caption = STEPS[k].cap; render();
+  try { await STEPS[k].run(token); } catch(e){ if (e!=='stop') console.error(e); return; }
+  if (token===run){ clearTransient(); render(); }
+}
+function clearTransient(){ IDS.forEach(id => { const p = S.phones[id]; p.toast=null; p.notif=null; p.sync=null; p.dlg=null; p.pressed=null; p.newRow=false; p.bump=null; p.newVisit=null; }); }
+function init(){
+  S = fresh(); buildStage();
+  const dots = document.getElementById('dots');
+  STEPS.forEach((s,i) => { const b = document.createElement('button'); b.textContent = i+1; b.title = s.t; b.setAttribute('aria-label', `Step ${i+1}: ${s.t}`); b.onclick = () => goTo(i); dots.appendChild(b); });
+  document.getElementById('next').onclick = () => goTo(cur===STEPS.length-1 ? 0 : cur+1);
+  document.getElementById('back').onclick = () => goTo(Math.max(0,cur-1), false);
+  document.getElementById('replay').onclick = () => goTo(cur);
+  document.addEventListener('keydown', e => { if (e.target.closest('button')) return; if (e.key==='ArrowRight') document.getElementById('next').click(); if (e.key==='ArrowLeft') document.getElementById('back').click(); });
+  window.addEventListener('resize', () => { fit(); });
+  const m = /step-(\d+)/.exec(location.hash || '');
+  goTo(m ? Math.min(STEPS.length, Math.max(1, +m[1])) - 1 : 0, false);
+}
+init();
+})();
+</script>
+</body></html>
