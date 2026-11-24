@@ -221,15 +221,15 @@ button{font:inherit;cursor:pointer}
   <aside id="guide" aria-label="Guide">
     <div class="brand"><div class="mark">a</div><div><b>Camp Mode</b><span>Avni · three phones, no internet</span></div></div>
     <p class="lede">A mobile clinic sets up in a village with no network. The registration desk, the vitals desk and the doctor each work on their own phone, and the same patient moves between them as one team.</p>
-    <div class="stepcard" aria-live="polite">
-      <div class="sn"><span id="sn">Step 1 of 12</span><span id="sw"></span></div>
-      <h2 id="st"></h2>
-      <div id="sb"></div>
-    </div>
     <div class="ctrl">
       <button class="btn" id="back">Back</button>
       <button class="btn pri" id="next">Next</button>
       <button class="btn" id="replay">Play this step again</button>
+    </div>
+    <div class="stepcard" aria-live="polite">
+      <div class="sn"><span id="sn">Step 1 of 12</span><span id="sw"></span></div>
+      <h2 id="st"></h2>
+      <div id="sb"></div>
     </div>
     <div class="dotnav" id="dots" aria-label="Jump to a step"></div>
     <div class="facts">
@@ -268,7 +268,8 @@ const IDS = ['desk','nurse','doc'];
 const PATIENT = {first:'Lakshmi', last:'Rao', name:'Lakshmi Rao', age:'34', gender:'Female', village:'Hirapur', init:'L'};
 const VILLAGES = ['Hirapur','Sonpur','Kesla'];
 const VITALS = [['Blood pressure','128/84'],['Weight (kg)','52'],['Temperature (°F)','99.1']];
-const CONSULT = [['Diagnosis','Fever, mild anaemia'],['Medicines','Paracetamol 500 mg, iron tablets'],['Follow up','In 2 weeks']];
+const FOLLOWUP = new Date(Date.now() + 14*864e5);
+const CONSULT = [['Diagnosis','Suspected pulmonary tuberculosis'],['Tests advised','Sputum test, chest X-ray'],['Follow up date', null, 'date']];
 const CARDS = [['patient','Registered','#E3F2FD'],['vitals','Vitals done','#FFF3E0'],['consult','Seen by doctor','#F3E5F5'],['wait','Still waiting','#E8F5E9']];
 const TODAY = new Date();
 const dmy = d => `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
@@ -386,26 +387,27 @@ function leftScreen(){
 const field = (label, val, typing) => `<div class="fe"><div class="fl">${label} <i>*</i></div><div class="fv ${typing?'typing':''}">${val||'&nbsp;'}</div></div>`;
 function regForm(id){
   const p = S.phones[id], f = p.form || {};
-  return header('Patient Registration', true) + `<div class="scr"><div class="fm">
+  return header('Patient Registration', true) + `<div class="scr"><div class="fm" style="transform:translateY(-${f.scroll||0}px);transition:transform .45s ease">
     <div class="fe" style="margin-top:18px"><div class="fl">Date of Registration</div><span class="dv">${dmy(TODAY)}</span></div>
     ${field('First Name', f.first, f.at==='first')}${field('Last Name', f.last, f.at==='last')}
     <div class="fe"><div class="fl">Date of Birth <i>*</i></div><span class="dv">${f.age?'Calculated from age':'Choose a date'}</span><div class="fl" style="margin-top:8px">Age</div>
       <div class="agerow"><div class="fv ${f.at==='age'?'typing':''}">${f.age||'&nbsp;'}</div>${radio('Years', !!f.age)}${radio('Months', false)}</div></div>
     <div class="fe"><div class="fl">Gender <i>*</i></div><div class="rg">${['Female','Male','Other'].map(g=>radio(g, f.gender===g)).join('')}</div></div>
     <div class="fe"><div class="fl">Address <i>*</i></div><div class="rgh">Village</div><div class="rg">${VILLAGES.map(v=>radio(v, f.village===v)).join('')}</div></div>
+    ${field('Occupation', f.occupation, f.at==='occupation')}
     <div class="fbt"><div class="fb nx ${p.pressed==='next'?'press':''}">NEXT</div></div></div></div>`;
 }
 function visitForm(id, type, rows){
   const p = S.phones[id], f = p.form || {vals:[]};
   return header(`${PATIENT.name} - ${type}`, true) + `<div class="scr"><div class="fm">
     <div class="fe" style="margin-top:18px"><div class="fl">Visit date</div><span class="dv">${dmy(TODAY)}</span></div>
-    <div class="fgt">${type}</div>${rows.map((r,i)=>field(r[0], f.vals[i], f.at===i)).join('')}
+    <div class="fgt">${type}</div>${rows.map((r,i)=> r[2]==='date' ? `<div class="fe"><div class="fl">${r[0]} <i>*</i></div><span class="dv ${f.at===i?'press':''}">${f.vals[i] || 'Choose a date'}</span></div>` : field(r[0], f.vals[i], f.at===i)).join('')}
     <div class="fbt"><div class="fb nx ${p.pressed==='next'?'press':''}">NEXT</div></div></div></div>`;
 }
 function summaryScreen(id){
   const p = S.phones[id], f = p.form || {};
   const reg = f.kind === 'reg';
-  const rows = reg ? [['Household members','4']] : (f.kind==='vitals'?VITALS:CONSULT).map((r,i)=>[r[0], f.vals[i]]);
+  const rows = reg ? [['Occupation', f.occupation || 'Farm labourer']] : (f.kind==='vitals'?VITALS:CONSULT).map((r,i)=>[r[0], f.vals[i]]);
   const title = reg ? 'Patient Registration - Summary & Recommendations' : `${f.kind==='vitals'?'Vitals':'Consultation'} - Summary & Recommendations`;
   return header(title, true) + `<div class="scr"><div class="sm"><div class="sh"><b>${PATIENT.name}</b><span>${patientLine()}</span></div><div class="stb">Scroll to Bottom to Save</div>
     <h5>Observations</h5><table class="obs">${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
@@ -417,7 +419,7 @@ function encCard(type, rows, by, isNew){
 }
 function dashboard(id){
   const p = S.phones[id];
-  const encs = (p.has.vitals ? encCard('Vitals', VITALS, 'Sunita', p.newVisit==='vitals') : '') + (p.has.consult ? encCard('Consultation', CONSULT, 'Dr. Arif', p.newVisit==='consult') : '');
+  const encs = (p.has.vitals ? encCard('Vitals', VITALS, 'Sunita', p.newVisit==='vitals') : '') + (p.has.consult ? encCard('Consultation', CONSULT.map(r => [r[0], r[2]==='date' ? dlong(FOLLOWUP) : r[1]]), 'Dr. Arif', p.newVisit==='consult') : '');
   return header('Dashboard', true) + `<div class="scr"><div class="ph"><div class="av">${PATIENT.init}</div><div class="pn"><b>${PATIENT.name}</b><span>${patientLine()}</span></div><div class="loc">${I.place}<div>Location</div></div></div>
     <div class="pbody"><div class="nfb"><span class="tbtn ${p.pressed==='newform'?'press':''}">New Form</span></div>
     <div class="cap">Registration Details</div><div class="vc"><div class="vt">Registered on ${dlong(TODAY)} by Meera</div><span class="exp">${I.down}</span><div class="va"><span class="tl">Edit</span><span class="tl">Share</span></div></div></div>
@@ -550,7 +552,10 @@ async function recordVisit(id, kind, rows, token){
   await tap(id, 'newform', token); p.types = {}; render(); await pause(700, token);
   p.types.press = type; render(); await pause(450, token); p.types = null;
   p.screen = kind; p.form = {kind, vals:[]}; render(); await pause(400, token);
-  for (let i=0;i<rows.length;i++) await typeIn(id, i, rows[i][1], token);
+  for (let i=0;i<rows.length;i++){
+    if (rows[i][2]==='date'){ p.form.at = i; render(); await pause(500, token); p.form.vals[i] = dmy(FOLLOWUP); p.form.at = null; render(); await pause(400, token); }
+    else await typeIn(id, i, rows[i][1], token);
+  }
   await tap(id, 'next', token); p.screen = 'summary'; render(); await pause(1100, token);
   await tap(id, 'save', token); p.has[kind] = true; p.form = null; p.screen = 'dashboard'; p.newVisit = kind; p.toast = `${type} Encounter Saved`; render(); await pause(1100, token); p.toast = null;
 }
@@ -586,13 +591,13 @@ const STEPS = [
       c.camp='joined'; c.screen='home'; c.lastHub=S.clock; hubSaw('doc', S.clock);
       c.notif = {t:'In a camp', s:"This phone shares records with the hub while it is on the hub's Wi-Fi.", a:'LEAVE CAMP'}; render(); await pause(1600,tk); c.notif=null; } },
   { t:'The desk registers a patient', w:'desk',
-    b:`<p>Lakshmi Rao arrives at the desk. ${who('desk')} taps <b>Register</b>, picks <b>Patient</b> and fills in her name, age, gender and village. <b>Next</b> shows a summary, and <b>Save</b> opens her dashboard.</p><p>The record is saved on the desk's phone, which is also the hub.</p>`,
+    b:`<p>Lakshmi Rao arrives at the desk. ${who('desk')} taps <b>Register</b>, picks <b>Patient</b> and fills in her name, age, gender, village and occupation. <b>Next</b> shows a summary, and <b>Save</b> opens her dashboard.</p><p>The record is saved on the desk's phone, which is also the hub.</p>`,
     cap:'Registration works exactly as it does without Camp mode.',
     async run(tk){ S.clock += 6; const d = S.phones.desk; d.screen='home'; render(); await pause(400,tk);
       await tap('desk','tab:register',tk,380); d.screen='register'; render(); await pause(500,tk); await tap('desk','rtype',tk);
       d.screen='reg'; d.form={kind:'reg'}; render(); await pause(400,tk);
       await typeIn('desk','first',PATIENT.first,tk); await typeIn('desk','last',PATIENT.last,tk); await typeIn('desk','age',PATIENT.age,tk);
-      d.form.gender='Female'; render(); await pause(350,tk); d.form.village='Hirapur'; render(); await pause(350,tk);
+      d.form.gender='Female'; render(); await pause(350,tk); d.form.village='Hirapur'; render(); await pause(350,tk); d.form.scroll = 150; render(); await pause(600,tk); await typeIn('desk','occupation','Farm labourer',tk);
       await tap('desk','next',tk); d.screen='summary'; render(); await pause(1000,tk);
       await tap('desk','save',tk); d.has.patient = true; d.form=null; d.screen='dashboard'; d.toast='Registration Saved'; render(); await pause(1100,tk); d.toast=null; } },
   { t:"Within 30 seconds, she is at the vitals desk", w:'nurse',
@@ -605,7 +610,7 @@ const STEPS = [
     async run(tk){ S.clock += 4; await openPatientFrom('nurse','patient',tk); await recordVisit('nurse','vitals',VITALS,tk);
       S.clock += 1; await share('nurse',tk,true); S.phones.doc.screen='home'; await share('doc',tk); } },
   { t:'The doctor sees the vitals and treats her', w:'doc',
-    b:`<p>${who('doc')} taps <b>Vitals done</b> and opens Lakshmi. The vitals visit is already under Completed Encounters, with Sunita's name on it.</p><p>He taps <b>New Form</b>, picks <b>Consultation</b>, and records the diagnosis and medicines. That visit travels back to the registration desk and the vitals desk the same way.</p>`,
+    b:`<p>${who('doc')} taps <b>Vitals done</b> and opens Lakshmi. The vitals visit is already under Completed Encounters, with Sunita's name on it.</p><p>He taps <b>New Form</b>, picks <b>Consultation</b>, records the diagnosis and the tests he advises, and picks a follow-up date two weeks out. That visit travels back to the registration desk and the vitals desk the same way.</p>`,
     cap:'Each phone now holds the full patient: registration, vitals and consultation.',
     async run(tk){ S.clock += 3; await openPatientFrom('doc','vitals',tk); await pause(800,tk); await recordVisit('doc','consult',CONSULT,tk);
       S.clock += 1; await share('doc',tk,true); S.phones.nurse.screen='home'; await share('nurse',tk); } },
