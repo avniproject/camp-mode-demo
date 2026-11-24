@@ -220,7 +220,7 @@ button{font:inherit;cursor:pointer}
 <div id="app">
   <aside id="guide" aria-label="Guide">
     <div class="brand"><div class="mark">a</div><div><b>Camp Mode</b><span>Avni · three phones, no internet</span></div></div>
-    <p class="lede">A mobile clinic sets up in a village with no network. The registration desk, the nurse and the doctor each work on their own phone, and the same patient moves between them as one team.</p>
+    <p class="lede">A mobile clinic sets up in a village with no network. The registration desk, the vitals desk and the doctor each work on their own phone, and the same patient moves between them as one team.</p>
     <div class="stepcard" aria-live="polite">
       <div class="sn"><span id="sn">Step 1 of 12</span><span id="sw"></span></div>
       <h2 id="st"></h2>
@@ -261,7 +261,7 @@ button{font:inherit;cursor:pointer}
 const NET = 'AndroidShare_4821', PASS = 'k7q2mfw9rt4xa8bz';
 const PH = {
   desk:  {user:'Meera', login:'meera@clinicdemo', model:'Galaxy A15', label:'Registration desk'},
-  nurse: {user:'Sunita', login:'sunita@clinicdemo', model:'Redmi 13C', label:'Nurse'},
+  nurse: {user:'Sunita', login:'sunita@clinicdemo', model:'Redmi 13C', label:'Vitals Desk'},
   doc:   {user:'Dr. Arif', login:'arif@clinicdemo', model:'Moto G54', label:'Doctor'}
 };
 const IDS = ['desk','nurse','doc'];
@@ -556,7 +556,7 @@ async function recordVisit(id, kind, rows, token){
 }
 
 /* ---------------- the story ---------------- */
-const who = k => `<span class="who ${k}">${k==='desk'?'Desk':k==='nurse'?'Nurse':'Doctor'}</span>`;
+const who = k => `<span class="who ${k}">${k==='desk'?'Desk':k==='nurse'?'Vitals Desk':'Doctor'}</span>`;
 const STEPS = [
   { t:'Three phones, no internet', w:'',
     b:`<p>The clinic van has parked in Hirapur. There is no mobile network here.</p><p>${who('desk')} registers patients, ${who('nurse')} takes vitals, and ${who('doc')} sees them. Each has Avni on their own phone, and right now the phones know nothing about each other.</p>`,
@@ -571,8 +571,8 @@ const STEPS = [
     cap:'The hub shows its code, its Wi-Fi name and password, and the phones that have synced with it.',
     async run(tk){ const d = S.phones.desk; d.screen='camp'; render(); await pause(400,tk); await tap('desk','start',tk);
       S.hub.running = true; S.wifi = true; d.notif = {t:'Sharing camp records', s:'Phones in this camp can sync with this phone.', a:'STOP'}; render(); await pause(1700,tk); d.notif = null; } },
-  { t:'The nurse joins the hub', w:'nurse',
-    b:`<p>${who('nurse')} opens Camp mode, taps <b>Scan to join</b> and points the camera at the code on the desk's phone.</p><p>Her phone connects to the hub's Wi-Fi and goes back to Home. A notice says she is in a camp.</p>`,
+  { t:'The vitals desk joins the hub', w:'nurse',
+    b:`<p>${who('nurse')} opens Camp mode, taps <b>Scan to join</b> and points the camera at the code on the desk's phone.</p><p>The phone connects to the hub's Wi-Fi and goes back to Home. A notice says it is in a camp.</p>`,
     cap:'Joining takes one scan. No passwords are typed.',
     async run(tk){ const n = S.phones.nurse; await tap('nurse','tab:more',tk,300); n.screen='more'; render(); await pause(500,tk); await tap('nurse','camp',tk,380); n.screen='camp'; render(); await pause(500,tk);
       await tap('nurse','scan',tk); n.screen='scan'; render(); await pause(1600,tk);
@@ -595,17 +595,17 @@ const STEPS = [
       d.form.gender='Female'; render(); await pause(350,tk); d.form.village='Hirapur'; render(); await pause(350,tk);
       await tap('desk','next',tk); d.screen='summary'; render(); await pause(1000,tk);
       await tap('desk','save',tk); d.has.patient = true; d.form=null; d.screen='dashboard'; d.toast='Registration Saved'; render(); await pause(1100,tk); d.toast=null; } },
-  { t:"Within 30 seconds, she is on the nurse's phone", w:'nurse',
-    b:`<p>Nobody presses anything. Every 30 seconds each joined phone syncs with the hub by itself, while Avni is open.</p><p>On its next sync, ${who('nurse')}'s phone picks up the new patient, and the <b>Registered</b> card on her Home goes to 1. ${who('doc')}'s phone gets her too.</p>`,
+  { t:"Within 30 seconds, she is at the vitals desk", w:'nurse',
+    b:`<p>Nobody presses anything. Every 30 seconds each joined phone syncs with the hub by itself, while Avni is open.</p><p>On its next sync, ${who('nurse')}'s phone picks up the new patient, and the <b>Registered</b> card on its Home goes to 1. ${who('doc')}'s phone gets her too.</p>`,
     cap:"The orange packet is one record moving over the hub's Wi-Fi. There is still no internet.",
     async run(tk){ S.clock += 1; render(); await pause(400,tk); await share('nurse',tk); await share('doc',tk,true); } },
-  { t:'The nurse records vitals', w:'nurse',
-    b:`<p>${who('nurse')} taps the <b>Registered</b> card and opens Lakshmi. On her dashboard she taps <b>New Form</b>, picks <b>Vitals</b>, records blood pressure, weight and temperature, and saves.</p><p>On her next sync the visit goes up to the hub, and from there down to the doctor.</p>`,
+  { t:'The vitals desk records her vitals', w:'nurse',
+    b:`<p>${who('nurse')} taps the <b>Registered</b> card and opens Lakshmi. On Lakshmi's Dashboard, Sunita taps <b>New Form</b>, picks <b>Vitals</b>, records blood pressure, weight and temperature, and saves.</p><p>On the phone's next sync the visit goes up to the hub, and from there down to the doctor.</p>`,
     cap:'A record made on any phone reaches every other phone through the hub.',
     async run(tk){ S.clock += 4; await openPatientFrom('nurse','patient',tk); await recordVisit('nurse','vitals',VITALS,tk);
       S.clock += 1; await share('nurse',tk,true); S.phones.doc.screen='home'; await share('doc',tk); } },
   { t:'The doctor sees the vitals and treats her', w:'doc',
-    b:`<p>${who('doc')} taps <b>Vitals done</b> and opens Lakshmi. The nurse's visit is already under Completed Encounters, with her name on it.</p><p>He taps <b>New Form</b>, picks <b>Consultation</b>, and records the diagnosis and medicines. That visit travels back to the desk and the nurse the same way.</p>`,
+    b:`<p>${who('doc')} taps <b>Vitals done</b> and opens Lakshmi. The vitals visit is already under Completed Encounters, with Sunita's name on it.</p><p>He taps <b>New Form</b>, picks <b>Consultation</b>, and records the diagnosis and medicines. That visit travels back to the registration desk and the vitals desk the same way.</p>`,
     cap:'Each phone now holds the full patient: registration, vitals and consultation.',
     async run(tk){ S.clock += 3; await openPatientFrom('doc','vitals',tk); await pause(800,tk); await recordVisit('doc','consult',CONSULT,tk);
       S.clock += 1; await share('doc',tk,true); S.phones.nurse.screen='home'; await share('nurse',tk); } },
@@ -623,7 +623,7 @@ const STEPS = [
     async run(tk){ const d = S.phones.desk; d.screen='camp'; render(); await pause(700,tk); await tap('desk','close',tk);
       S.hub.running = false; S.hub.ending = false; S.hub.phones = []; S.wifi = false; IDS.forEach(id => S.phones[id].screen='home'); render(); } },
   { t:'Back in town, each record reaches the server once', w:'',
-    b:`<p>The van drives back into network range. Each phone syncs with the server as usual.</p><p>Every record arrives once, under the person who recorded it: the registration from the desk, the vitals from the nurse, the consultation from the doctor.</p>`,
+    b:`<p>The van drives back into network range. Each phone syncs with the server as usual.</p><p>Every record arrives once, under the person who recorded it: the registration from the desk, the vitals from the vitals desk, the consultation from the doctor.</p>`,
     cap:'The server now has the whole visit, exactly as if the clinic had had internet all day.',
     async run(tk){ S.clock = 15*60+5; S.internet = true; render(); await pause(800,tk);
       for (const [id,k] of [['desk','patient'],['nurse','vitals'],['doc','consult']]){ const p = S.phones[id]; p.sync='Syncing with the server'; render(); await pause(400,tk); await flyPacket(id,'server',LETTER[k],tk,'srv'); S.server[k]=true; p.sync=null; p.toast='Sync complete'; render(); await pause(700,tk); p.toast=null; render(); } } }
